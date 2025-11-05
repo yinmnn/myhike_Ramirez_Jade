@@ -1,22 +1,25 @@
 // src/authentication.js
-// ------------------------------------------------------------
+// -------------------------------------------------------------
 // Part of the COMP1800 Projects 1 Course (BCIT).
 // Starter code provided for students to use and adapt.
 // Contains reusable Firebase Authentication functions
 // (login, signup, logout, and auth state checks).
 // -------------------------------------------------------------
 
-// Import the initialized Firebase Authentication object
-import { auth } from "/src/firebaseConfig.js";
+// Import Firebase services from your config
+import { auth, db } from "./firebaseConfig.js";
 
-// Import specific functions from the Firebase Auth SDK
+// Import Firebase Authentication functions
 import {
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
+  signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
+
+// Import Firestore functions
+import { doc, setDoc } from "firebase/firestore";
 
 // -------------------------------------------------------------
 // loginUser(email, password)
@@ -28,8 +31,6 @@ import {
 //   password (string) - user's password
 //
 // Returns: Promise resolving to the user credential object.
-// Usage:
-//   await loginUser("user@example.com", "password123");
 // -------------------------------------------------------------
 export async function loginUser(email, password) {
   return signInWithEmailAndPassword(auth, email, password);
@@ -39,7 +40,8 @@ export async function loginUser(email, password) {
 // signupUser(name, email, password)
 // -------------------------------------------------------------
 // Creates a new user account with Firebase Authentication,
-// then updates the user's profile with a display name.
+// then updates the user's profile with a display name,
+// and creates Firestore user profile document.
 //
 // Parameters:
 //   name (string)     - user's display name
@@ -47,13 +49,30 @@ export async function loginUser(email, password) {
 //   password (string) - user's password
 //
 // Returns: the created user object.
-// Usage:
-//   const user = await signupUser("Alice", "alice@email.com", "secret");
 // -------------------------------------------------------------
 export async function signupUser(name, email, password) {
+  // 1. Create user with Firebase Authentication
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  await updateProfile(userCredential.user, { displayName: name });
-  return userCredential.user;
+  const user = userCredential.user;
+
+  // 2. Update the displayName in the auth user profile
+  await updateProfile(user, { displayName: name });
+
+  try {
+    // 3. Create Firestore document for this user in 'users' collection using user.uid as doc ID
+    await setDoc(doc(db, "users", user.uid), {
+      name: name,
+      email: email,
+      country: "Canada", // default value, can be changed later
+      school: "BCIT",    // default value
+    });
+    console.log("Firestore user document created successfully!");
+  } catch (error) {
+    console.error("Error creating user document in Firestore:", error);
+  }
+
+  // 4. Return the created user object
+  return user;
 }
 
 // -------------------------------------------------------------
@@ -90,7 +109,7 @@ export function checkAuthState() {
     if (window.location.pathname.endsWith("main.html")) {
       if (user) {
         const displayName = user.displayName || user.email;
-        $("#welcomeMessage").text(`Hello, ${displayName}!`);
+        document.getElementById("welcomeMessage").textContent = `Hello, ${displayName}!`;
       } else {
         window.location.href = "index.html";
       }
@@ -130,4 +149,3 @@ export function authErrorMessage(error) {
 
   return map[code] || "Something went wrong. Please try again.";
 }
-

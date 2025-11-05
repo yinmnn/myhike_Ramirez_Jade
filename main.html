@@ -17,7 +17,7 @@
     main {
       flex-grow: 1;
       display: flex;
-      justify-content: center;
+      flex-direction: column; /* changed for vertical stacking */
       align-items: center;
       padding: 2rem;
     }
@@ -29,6 +29,8 @@
       text-align: center;
       box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
       color: #e0e0e0; /* Light grey text */
+      margin-bottom: 3rem;
+      width: 100%;
     }
     .welcome-card h1 {
       font-weight: 700;
@@ -46,6 +48,34 @@
       opacity: 0.7;
       color: #aaaaaa; /* Lighter grey for quote */
     }
+    /* Hikes container styles */
+    .hikes-container {
+      background-color: #1c1c1c; /* Dark background */
+      border-radius: 15px;
+      padding: 2rem;
+      max-width: 1100px;
+      width: 100%;
+      color: #f0f0f0;
+      box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
+    }
+    .hikes-container h1 {
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      color: #e0e0e0;
+      text-align: center;
+    }
+    .card {
+      background-color: #2a2a2a;
+      border: none;
+      color: #ddd;
+    }
+    .card-title, .card-text, .card-length {
+      color: #f0f0f0;
+    }
+    .btn-primary {
+      background-color: #007bff;
+      border: none;
+    }
   </style>
 </head>
 <body>
@@ -55,8 +85,30 @@
     <div class="welcome-card">
       <h1>Welcome back, <span id="name-goes-here">friend</span>!</h1>
       <hr />
-      <p class="quote">"Every lost item has a story — let's help you find yours."</p>
+      <p class="quote">"&nbsp;<span id="quote-goes-here">Loading quote...</span>&nbsp;"</p>
     </div>
+
+    <!-- Hikes Section -->
+    <div class="hikes-container">
+      <h1>Popular Hikes - LostNFound BCIT</h1>
+      <div id="hikes-go-here" class="row row-cols-1 row-cols-md-3 g-4"></div>
+    </div>
+
+    <!-- Hike Card Template -->
+    <template id="hikeCardTemplate">
+      <div class="col">
+        <div class="card shadow-sm">
+          <img class="card-img-top card-image" src="https://via.placeholder.com/300x180?text=Hike+Image" alt="Hike Image" />
+          <div class="card-body">
+            <h5 class="card-title"></h5>
+            <p class="card-text"></p>
+            <p>Length: <span class="card-length"></span> km</p>
+            <a class="btn btn-primary read-more" href="#">Read More</a>
+          </div>
+        </div>
+      </div>
+    </template>
+
   </main>
 
   <site-footer></site-footer>

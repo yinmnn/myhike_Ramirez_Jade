@@ -1,9 +1,9 @@
 // src/firebaseAPIConfig.js
+
 // -------------------------------------------------------------
 // Part of the COMP1800 Project 1 Course (BCIT).
 // Starter code provided for students to use and adapt.
-// Handles Firebase initialization and exports the Auth instance.
-// This file initializes Firebase and exports the "auth" object.
+// Handles Firebase initialization and exports the Auth and Firestore instances.
 // The configuration values are loaded securely from Vite
 // environment variables (.env file in project root).
 // ---------------------------------------------------------
@@ -11,6 +11,7 @@
 // Import Firebase SDK modules (using Firebase v9 modular syntax)
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";  // <-- Add this import
 
 // ---------------------------------------------------------
 // Read Firebase configuration from Vite environment variables.
@@ -21,7 +22,7 @@ import { getAuth } from "firebase/auth";
 // VITE_FIREBASE_PROJECT_ID=your-project-id
 // VITE_FIREBASE_APP_ID=your-app-id
 //
-// ⚠️ Note: Vite only exposes environment variables that start with "VITE_"
+//
 // ---------------------------------------------------------
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -42,3 +43,8 @@ const app = initializeApp(firebaseConfig);
 // or signout operations (that's why we export it).
 // ---------------------------------------------------------
 export const auth = getAuth(app);
+
+// ---------------------------------------------------------
+// Initialize Firestore and export it for use in your app.
+// ---------------------------------------------------------
+export const db = getFirestore(app);

@@ -1,11 +1,3 @@
-// -------------------------------------------------------------
-// src/loginSignup.js
-// -------------------------------------------------------------
-// Part of the COMP1800 Projects 1 Course (BCIT).
-// Starter code provided for students to use and adapt.
-// Manages the login/signup form behaviour and redirects.
-// -------------------------------------------------------------
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 import './styles/style.css';
@@ -15,11 +7,9 @@ import {
     authErrorMessage,
 } from './authentication.js';
 
-
 // --- Login and Signup Page ---
 // Handles toggling between Login/Signup views and form submits
 // using plain DOM APIs for simplicity and maintainability.
-
 
 function initAuthUI() {
     // --- DOM Elements ---
@@ -64,6 +54,7 @@ function initAuthUI() {
     // Toggle buttons
     toSignupBtn?.addEventListener('click', (e) => {
         e.preventDefault();
+        console.log("Sign up link clicked");  // <-- Added log
         hideError();
         setVisible(loginView, false);
         setVisible(signupView, true);
@@ -72,6 +63,7 @@ function initAuthUI() {
 
     toLoginBtn?.addEventListener('click', (e) => {
         e.preventDefault();
+        console.log("Login link clicked");    // <-- Added log
         hideError();
         setVisible(signupView, false);
         setVisible(loginView, true);
