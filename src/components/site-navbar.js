@@ -12,29 +12,29 @@ class SiteNavbar extends HTMLElement {
     this.renderAuthControls();
   }
 
-renderNavbar() {
-  this.innerHTML = `
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center" href="/">
-          <img src="/images/logo.png" alt="LostNFound Logo" width="40" height="40" class="me-2" />
-          LostNFound
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-          aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarContent">
-          <form class="d-flex ms-auto me-3" role="search" id="searchForm">
-            <input class="form-control me-2" type="search" placeholder="Search lost items" aria-label="Search" id="searchInput" />
-            <button class="btn btn-outline-light" type="submit">Search</button>
-          </form>
-          <div id="authControls" class="d-flex"></div>
+  renderNavbar() {
+    this.innerHTML = `
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+          <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="/images/logo.png" alt="LostNFound Logo" width="40" height="40" class="me-2" />
+            LostNFound
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarContent">
+            <form class="d-flex ms-auto me-3" role="search" id="searchForm">
+              <input class="form-control me-2" type="search" placeholder="Search lost items" aria-label="Search" id="searchInput" />
+              <button class="btn btn-outline-light" type="submit">Search</button>
+            </form>
+            <div id="authControls" class="d-flex"></div>
+          </div>
         </div>
-      </div>
-    </nav>
-  `;
-}
+      </nav>
+    `;
+  }
 
   renderAuthControls() {
     const authControls = this.querySelector('#authControls');
@@ -44,8 +44,9 @@ renderNavbar() {
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is logged in: show Logout button
+        // User is logged in: show Profile link and Logout button
         authControls.innerHTML = `
+          <a class="btn btn-outline-light me-2" href="/profile.html" style="min-width: 80px;">Profile</a>
           <button class="btn btn-outline-light" id="signOutBtn" type="button" style="min-width: 80px;">Log out</button>
         `;
         const signOutBtn = authControls.querySelector('#signOutBtn');
