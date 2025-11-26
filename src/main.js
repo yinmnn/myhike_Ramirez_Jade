@@ -1,10 +1,21 @@
 import { onAuthReady } from "./authentication.js";
 import { db } from "./firebaseConfig.js";
-import { doc, onSnapshot, getDoc, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  onSnapshot,
+  getDoc,
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+} from "firebase/firestore";
 
-// Show personalized greeting on the dashboard
+// Show personalized greeting AND load hikes with bookmark status
 function showDashboard() {
-  const nameElement = document.getElementById("name-goes-here"); // The element to show greeting
+  const nameElement = document.getElementById("name-goes-here");
 
   onAuthReady(async (user) => {
     if (!user) {
@@ -12,14 +23,22 @@ function showDashboard() {
       return;
     }
 
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    const name = userDoc.exists()
-      ? userDoc.data().name
-      : user.displayName || user.email;
+    // Reference the user document
+    const userRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userRef);
+    const userData = userDoc.exists() ? userDoc.data() : {};
 
+    // Greeting
+    const name = userData.name || user.displayName || user.email;
     if (nameElement) {
       nameElement.textContent = `${name}!`;
     }
+
+    // Bookmarks array
+    const bookmarks = userData.bookmarks || [];
+
+    // Render hikes with bookmark state
+    await displayCardsDynamically(user.uid, bookmarks);
   });
 }
 
@@ -31,10 +50,12 @@ function readQuote(day) {
     quoteDocRef,
     (docSnap) => {
       if (docSnap.exists()) {
-        document.getElementById("quote-goes-here").textContent = docSnap.data().quote;
+        document.getElementById("quote-goes-here").textContent =
+          docSnap.data().quote;
       } else {
         console.log("No such document!");
-        document.getElementById("quote-goes-here").textContent = "No quote today.";
+        document.getElementById("quote-goes-here").textContent =
+          "No quote today.";
       }
     },
     (error) => {
@@ -88,7 +109,7 @@ function addHikeData() {
   });
 }
 
-// Function seeds hikes collection ONLY IF empty
+// Seeds hikes collection ONLY IF empty
 async function seedHikes() {
   const hikesRef = collection(db, "hikes");
   const querySnapshot = await getDocs(hikesRef);
@@ -101,35 +122,51 @@ async function seedHikes() {
   }
 }
 
-// Function to display hikes dynamically on the page
-async function displayCardsDynamically() {
+// Display hikes dynamically, with clickable bookmark icons
+async function displayCardsDynamically(userId, bookmarks) {
   const cardTemplate = document.getElementById("hikeCardTemplate");
   const hikesCollectionRef = collection(db, "hikes");
   const container = document.getElementById("hikes-go-here");
 
-  // Map hike codes to your PNG file names located in public/images/
   const imageMap = {
     BBY01: "PNG1.jpg",
     AM01: "PNG2.jpg",
     NV01: "PNG3.jpg",
   };
 
+  container.innerHTML = "";
+
   try {
     const querySnapshot = await getDocs(hikesCollectionRef);
 
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach((docSnap) => {
       const newcard = cardTemplate.content.cloneNode(true);
-      const hike = doc.data();
+      const hike = docSnap.data();
+      const hikeId = docSnap.id;
 
       newcard.querySelector(".card-title").textContent = hike.name;
-      newcard.querySelector(".card-text").textContent = hike.details || `Located in ${hike.city}.`;
+      newcard.querySelector(".card-text").textContent =
+        hike.details || `Located in ${hike.city}.`;
       newcard.querySelector(".card-length").textContent = hike.length;
 
       const fileName = imageMap[hike.code] || "placeholder.png";
-      newcard.querySelector(".card-image").src = `/images/${fileName}`;
-      newcard.querySelector(".card-image").alt = `${hike.name} image`;
+      const img = newcard.querySelector(".card-image");
+      img.src = `/images/${fileName}`;
+      img.alt = `${hike.name} image`;
 
-      newcard.querySelector(".read-more").href = `eachHike.html?docID=${doc.id}`;
+      newcard.querySelector(".read-more").href =
+        `eachHike.html?docID=${hikeId}`;
+
+      // Bookmark icon
+      const icon = newcard.querySelector("i.material-icons");
+      if (icon) {
+        icon.id = "save-" + hikeId;
+
+        const isBookmarked = bookmarks.includes(hikeId);
+        icon.innerText = isBookmarked ? "bookmark" : "bookmark_border";
+
+        icon.onclick = () => toggleBookmark(userId, hikeId);
+      }
 
       container.appendChild(newcard);
     });
@@ -138,8 +175,38 @@ async function displayCardsDynamically() {
   }
 }
 
+// Toggle bookmark state in Firestore and update UI
+async function toggleBookmark(userId, hikeDocID) {
+  const userRef = doc(db, "users", userId);
+  const userSnap = await getDoc(userRef);
+  const userData = userSnap.exists() ? userSnap.data() : {};
+  const bookmarks = userData.bookmarks || [];
+
+  const iconId = "save-" + hikeDocID;
+  const icon = document.getElementById(iconId);
+
+  const isBookmarked = bookmarks.includes(hikeDocID);
+
+  try {
+    if (isBookmarked) {
+      // Remove from array
+      await updateDoc(userRef, {
+        bookmarks: arrayRemove(hikeDocID),
+      });
+      if (icon) icon.innerText = "bookmark_border";
+    } else {
+      // Add to array
+      await updateDoc(userRef, {
+        bookmarks: arrayUnion(hikeDocID),
+      });
+      if (icon) icon.innerText = "bookmark";
+    }
+  } catch (err) {
+    console.error("Error toggling bookmark:", err);
+  }
+}
+
 // Call functions when page loads
 showDashboard();
-readQuote("tuesday"); // Replace with dynamic day if desired
+readQuote("tuesday");
 seedHikes();
-displayCardsDynamically();
